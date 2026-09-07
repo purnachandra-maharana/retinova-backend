@@ -1,10 +1,13 @@
 const { Pool } = require("pg");
 require("dotenv").config();
 
+const databaseUrl =
+  process.env.RETINOVA_DATABASE_URL || process.env.DATABASE_URL;
+
 const pool = new Pool({
-  ...(process.env.DATABASE_URL
+  ...(databaseUrl
     ? {
-        connectionString: process.env.DATABASE_URL,
+        connectionString: databaseUrl,
         ssl: process.env.NODE_ENV === "production"
           ? { rejectUnauthorized: false }
           : undefined,

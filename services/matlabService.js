@@ -2,8 +2,11 @@ const { spawn } = require("child_process");
 const path = require("path");
 const fs = require("fs");
 
-const MATLAB_EXE = process.env.MATLAB_EXE || "matlab";
-const MATLAB_PROJECT = process.env.MATLAB_PROJECT_PATH;
+const MATLAB_EXE =
+  process.env.RETINOVA_MATLAB_EXE || process.env.MATLAB_EXE || "matlab";
+const MATLAB_PROJECT =
+  process.env.RETINOVA_MATLAB_PROJECT_PATH ||
+  process.env.MATLAB_PROJECT_PATH;
 
 function getMatlabConfiguration() {
   if (!MATLAB_PROJECT) {
