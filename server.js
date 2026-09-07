@@ -32,13 +32,47 @@ const allowedOrigins = (process.env.CORS_ORIGINS || "http://localhost:5173")
   .split(",")
   .map((origin) => origin.trim())
   .filter(Boolean);
+
+function isAllowedBrowserOrigin(origin) {
+  return (
+    !origin ||
+    allowedOrigins.includes(origin) ||
+    /^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin)
+  );
+}
+
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+
+  if (!isAllowedBrowserOrigin(origin)) {
+    return next();
+  }
+
+  if (origin) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Vary", "Origin");
+  }
+
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+
+  if (req.method === "OPTIONS") {
+    res.setHeader(
+      "Access-Control-Allow-Methods",
+      "GET,POST,PUT,PATCH,DELETE,OPTIONS"
+    );
+    res.setHeader(
+      "Access-Control-Allow-Headers",
+      req.headers["access-control-request-headers"] || "Content-Type"
+    );
+    return res.status(204).end();
+  }
+
+  return next();
+});
+
 app.use(cors({
   origin(origin, callback) {
-    const isConfiguredOrigin = !origin || allowedOrigins.includes(origin);
-    const isVercelDeployment =
-      /^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin || "");
-
-    if (isConfiguredOrigin || isVercelDeployment) {
+    if (isAllowedBrowserOrigin(origin)) {
       return callback(null, true);
     }
 
