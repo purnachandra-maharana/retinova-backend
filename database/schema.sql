@@ -79,6 +79,10 @@ CREATE TABLE ai_results (
     classification VARCHAR(100),
     confidence NUMERIC(5,4),
 
+    probabilities JSONB,
+    class_labels JSONB,
+    quality_metrics JSONB,
+
     gradcam_path TEXT,
 
     processing_status VARCHAR(30) DEFAULT 'PENDING',
