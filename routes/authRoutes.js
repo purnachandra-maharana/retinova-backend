@@ -53,7 +53,9 @@ router.post("/logout", async (req, res, next) => {
       .find((part) => part.startsWith(`${SESSION_COOKIE}=`))
       ?.slice(SESSION_COOKIE.length + 1);
     if (sessionId) await pool.query("DELETE FROM auth_sessions WHERE id = $1", [sessionId]);
-    res.setHeader("Set-Cookie", `${SESSION_COOKIE}=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0`);
+    const sameSite = process.env.NODE_ENV === "production" ? "None" : "Lax";
+    const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
+    res.setHeader("Set-Cookie", `${SESSION_COOKIE}=; HttpOnly; SameSite=${sameSite}; Path=/; Max-Age=0${secure}`);
     return res.status(204).end();
   } catch (error) {
     return next(error);

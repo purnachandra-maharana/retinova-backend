@@ -27,8 +27,18 @@ const PORT = Number(process.env.PORT) || 10000;
 // MIDDLEWARE
 // ============================================
 
-// Allow frontend requests
-app.use(cors());
+// Allow only the configured frontend origins and support session cookies.
+const allowedOrigins = (process.env.CORS_ORIGINS || "http://localhost:5173")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+app.use(cors({
+  origin(origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(new Error("Origin is not allowed by CORS"));
+  },
+  credentials: true,
+}));
 
 // Parse bounded request bodies
 app.use(express.json({ limit: "1mb" }));

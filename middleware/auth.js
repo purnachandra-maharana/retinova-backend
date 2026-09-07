@@ -65,7 +65,8 @@ function requireRole(...roles) {
 
 function sessionCookie(sessionId) {
   const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
-  return `${SESSION_COOKIE}=${encodeURIComponent(sessionId)}; HttpOnly; SameSite=Lax; Path=/; Max-Age=${Math.floor(SESSION_TTL_MS / 1000)}${secure}`;
+  const sameSite = process.env.NODE_ENV === "production" ? "None" : "Lax";
+  return `${SESSION_COOKIE}=${encodeURIComponent(sessionId)}; HttpOnly; SameSite=${sameSite}; Path=/; Max-Age=${Math.floor(SESSION_TTL_MS / 1000)}${secure}`;
 }
 
 module.exports = {
