@@ -2,13 +2,30 @@ const { spawn } = require("child_process");
 const path = require("path");
 const fs = require("fs");
 
-const MATLAB_EXE = "E:\\Matlab\\bin\\matlab.exe";
+const MATLAB_EXE = process.env.MATLAB_EXE || "matlab";
+const MATLAB_PROJECT = process.env.MATLAB_PROJECT_PATH;
 
-const MATLAB_PROJECT =
-  "D:\\Document\\SIH MATLAB PROJECT\\SIH26038_NEW";
+function getMatlabConfiguration() {
+  if (!MATLAB_PROJECT) {
+    throw new Error(
+      "MATLAB is not configured. Set MATLAB_PROJECT_PATH to the SIH26038_NEW project directory."
+    );
+  }
 
-const MATLAB_SCRIPTS =
-  path.join(MATLAB_PROJECT, "scripts");
+  const matlabScripts = path.join(MATLAB_PROJECT, "scripts");
+
+  if (!fs.existsSync(MATLAB_PROJECT)) {
+    throw new Error(`MATLAB project directory not found: ${MATLAB_PROJECT}`);
+  }
+
+  if (!fs.existsSync(matlabScripts)) {
+    throw new Error(`MATLAB scripts directory not found: ${matlabScripts}`);
+  }
+
+  return {
+    matlabScripts,
+  };
+}
 
 /**
  * Run the RetinaSafe MATLAB pipeline.
@@ -31,17 +48,23 @@ function runRetinaSafe(imagePath) {
       );
     }
 
-    if (!fs.existsSync(MATLAB_EXE)) {
-      return reject(
-        new Error(`MATLAB executable not found: ${MATLAB_EXE}`)
-      );
+    let matlabConfiguration;
+
+    try {
+      matlabConfiguration = getMatlabConfiguration();
+    } catch (error) {
+      return reject(error);
+    }
+
+    if (path.isAbsolute(MATLAB_EXE) && !fs.existsSync(MATLAB_EXE)) {
+      return reject(new Error(`MATLAB executable not found: ${MATLAB_EXE}`));
     }
 
     const escapedProject =
       MATLAB_PROJECT.replace(/\\/g, "/");
 
     const escapedScripts =
-      MATLAB_SCRIPTS.replace(/\\/g, "/");
+      matlabConfiguration.matlabScripts.replace(/\\/g, "/");
 
     const escapedImage =
       imagePath.replace(/\\/g, "/");
@@ -63,7 +86,7 @@ function runRetinaSafe(imagePath) {
         matlabCommand
       ],
       {
-        windowsHide: true
+          windowsHide: process.platform === "win32"
       }
     );
 
@@ -123,5 +146,6 @@ function runRetinaSafe(imagePath) {
 }
 
 module.exports = {
-  runRetinaSafe
+  runRetinaSafe,
+  getMatlabConfiguration,
 };

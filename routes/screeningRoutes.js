@@ -27,7 +27,7 @@ const GRADCAM_DIR = path.join(
 );
 
 const MATLAB_PROJECT =
-  "D:\\Document\\SIH MATLAB PROJECT\\SIH26038_NEW";
+  process.env.MATLAB_PROJECT_PATH || path.join(BACKEND_ROOT, "matlab");
 
 const MATLAB_JSON_DIR = path.join(
   MATLAB_PROJECT,
@@ -604,11 +604,18 @@ router.post(
           [id]
         );
 
-        return res.status(500).json({
+        if (req.file?.path) {
+          fs.rmSync(req.file.path, { force: true });
+        }
+
+        return res.status(503).json({
           success: false,
-          message:
-            "MATLAB image analysis failed",
-          error: matlabError.message,
+          code: "MATLAB_UNAVAILABLE",
+          message: "MATLAB image analysis is unavailable on this server.",
+          details:
+            process.env.NODE_ENV === "production"
+              ? "Configure a MATLAB worker for the backend before processing clinical images."
+              : matlabError.message,
         });
       }
 
